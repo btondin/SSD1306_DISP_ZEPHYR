@@ -49,7 +49,7 @@
     ssd1306: ssd1306@0 {
         compatible = "solomon,ssd1306fb";
         reg = <0>;                      /* CS = 0 no barramento */
-        spi-max-frequency = <8000000>;
+        spi-max-frequency = <4000000>;
 
         /* Resolução do display */
         width = <128>;
@@ -63,8 +63,8 @@
         prechargep = <0x22>;
 
         /* GPIOs auxiliares */
-        data-cmd-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
-        reset-gpios    = <&gpio0 16 GPIO_ACTIVE_LOW>;
+        data-cmd-gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;
+        //reset-gpios    = <&gpio0 16 GPIO_ACTIVE_LOW>;
 
         /* Opções extras do driver */
         segment-remap;
