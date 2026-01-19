@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mcp list)",
+      "Bash(claude mcp list:*)",
+      "Bash(npm config:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "Bash(git commit:*)",
+      "Bash(west build:*)",
+      "Bash(where west:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:docs.zephyrproject.org)",
+      "WebFetch(domain:devzone.nordicsemi.com)",
+      "Bash(\"/c/ncs/toolchains/66cdf9b75e/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-addr2line.exe\" -e \"C:/nordic/myapps/ST7789_DISP_ZEPHYR/app/build/zephyr/zephyr.elf\" 0x00029cc4)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

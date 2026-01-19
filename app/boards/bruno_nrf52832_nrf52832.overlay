@@ -1,0 +1,99 @@
+/*
+ * SSD1306 OLED Display Overlay for Bruno nRF52832 Board
+ * SPI Mode Configuration
+ *
+ * Hardware Configuration:
+ * - Display: SSD1306 OLED 128x64 monochrome
+ * - SPI1: SCK=P0.11, MOSI=P0.12, MISO=P0.13
+ * - CS (Chip Select) = P0.19
+ * - DC (Data/Command) = P0.17
+ * - RESET = P0.16
+ */
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	chosen {
+		zephyr,display = &ssd1306;
+	};
+};
+
+/*
+ * Disable unused peripherals
+ */
+&i2c0 { status = "disabled"; };
+&i2c1 { status = "disabled"; };
+&spi0 { status = "disabled"; };
+&adc  { status = "disabled"; };
+
+/*
+ * SPI1 configuration (SPIM1)
+
+ 
+ */
+
+
+&spi1 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+
+    /* Chip select do display */
+    cs-gpios = <&gpio0 19 GPIO_ACTIVE_LOW>;
+
+    /* Pin control já definido no seu board */
+    pinctrl-0 = <&spi1_default>;
+    pinctrl-1 = <&spi1_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    /* Display SSD1306 via SPI */
+    ssd1306: ssd1306@0 {
+        compatible = "solomon,ssd1306fb";
+        reg = <0>;                      /* CS = 0 no barramento */
+        spi-max-frequency = <8000000>;
+
+        /* Resolução do display */
+        width = <128>;
+        height = <64>;
+
+        /* Parâmetros comuns do SSD1306 */
+        segment-offset = <0>;
+        page-offset = <0>;
+        display-offset = <0>;
+        multiplex-ratio = <63>;
+        prechargep = <0x22>;
+
+        /* GPIOs auxiliares */
+        data-cmd-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
+        reset-gpios    = <&gpio0 16 GPIO_ACTIVE_LOW>;
+
+        /* Opções extras do driver */
+        segment-remap;
+        com-invdir;
+        com-sequential;
+    };
+};
+
+
+
+/*
+ * PINCTRL for SPI1
+ */
+&pinctrl {
+	spi1_default: spi1_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK,  0, 11)>,
+					<NRF_PSEL(SPIM_MOSI, 0, 12)>,
+					<NRF_PSEL(SPIM_MISO, 0, 13)>;
+		};
+	};
+
+	spi1_sleep: spi1_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK,  0, 11)>,
+					<NRF_PSEL(SPIM_MOSI, 0, 12)>,
+					<NRF_PSEL(SPIM_MISO, 0, 13)>;
+			low-power-enable;
+		};
+	};
+};
+
