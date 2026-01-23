@@ -25,6 +25,7 @@
 #include <zephyr/drivers/display.h> /* Display driver API (blanking on/off, write pixels) */
 #include <zephyr/kernel.h>        /* Zephyr kernel (threads, sleep, timing) */
 #include <lvgl.h>                 /* LVGL graphics library (widgets, drawing, fonts) */
+#include <stdio.h>                /* C standard I/O (snprintf for formatting strings) */
 #include <string.h>               /* C standard string functions (memcpy, strlen, etc.) */
 
 /* --- Logging setup ----------------------------------------------------------
@@ -351,6 +352,92 @@ static void demo_canvas(void)
 
 
 /* =============================================================================
+ * DEMO 6: MP3 PLAYER (scrolling text + progress bar)
+ * =============================================================================
+ * Simulates an old-school MP3 player (like a Foston):
+ * - Song title scrolls horizontally across the screen
+ * - A progress bar fills up over time (like a playback timer)
+ * - Current time / total time is displayed
+ *
+ * This demo is self-contained: it runs its own animation loop for 6 seconds.
+ */
+#define MP3_DEMO_DURATION_MS 6000  /* Total playback simulation: 6 seconds */
+#define MP3_SONG_TOTAL_SEC   210   /* Fake song length: 3:30 = 210 seconds */
+
+static void demo_mp3(void)
+{
+	lv_obj_t *scr = lv_screen_active();
+
+	/* --- "Now Playing" title at the top --- */
+	lv_obj_t *title = lv_label_create(scr);
+	lv_label_set_text(title, "> Now Playing");
+	lv_obj_set_style_text_font(title, &lv_font_unscii_8, 0);
+	lv_obj_align(title, LV_ALIGN_TOP_LEFT, 2, 2);
+
+	/* --- Song name (scrolling text) ---
+	 * The label is given a fixed width smaller than the text.
+	 * LV_LABEL_LONG_MODE_SCROLL makes it scroll back and forth automatically.
+	 * LVGL handles the animation as long as lv_task_handler() is called. */
+	lv_obj_t *song = lv_label_create(scr);
+	lv_label_set_text(song, "Linkin Park - In The End (Hybrid Theory 2000)");
+	lv_obj_set_style_text_font(song, &lv_font_unscii_8, 0);
+	lv_obj_set_width(song, SCREEN_WIDTH - 4);  /* Constrain width to force scroll */
+	lv_label_set_long_mode(song, LV_LABEL_LONG_MODE_SCROLL);
+	/* Scroll speed in pixels per second. Lower = smoother on small screens.
+	 * lv_anim_speed(20) encodes "20 pixels/sec" into the duration property.
+	 * Default is 40px/s which is too jumpy for a 128px wide display. */
+	lv_obj_set_style_anim_duration(song, lv_anim_speed(20), 0);
+	lv_obj_align(song, LV_ALIGN_TOP_LEFT, 2, 16);
+
+	/* --- Progress bar ---
+	 * A bar widget that we fill from 0% to 100% during the demo. */
+	lv_obj_t *bar = lv_bar_create(scr);
+	lv_obj_set_size(bar, SCREEN_WIDTH - 10, 8);   /* Almost full width, 8px tall */
+	lv_obj_align(bar, LV_ALIGN_BOTTOM_MID, 0, -16);
+	lv_bar_set_range(bar, 0, 100);                 /* Range: 0 to 100% */
+	lv_bar_set_value(bar, 0, LV_ANIM_OFF);         /* Start at 0% */
+
+	/* --- Time label (e.g., "0:00 / 3:30") --- */
+	lv_obj_t *time_label = lv_label_create(scr);
+	lv_label_set_text(time_label, "0:00 / 3:30");
+	lv_obj_set_style_text_font(time_label, &lv_font_unscii_8, 0);
+	lv_obj_align(time_label, LV_ALIGN_BOTTOM_MID, 0, -4);
+
+	/* --- Animation loop ---
+	 * We manually update the bar value and time text every 100ms.
+	 * Over 6 seconds, the bar goes from 0% to 100% and the time counts up
+	 * proportionally to the fake 3:30 song duration. */
+	char time_str[16];
+	int elapsed_ms = 0;
+
+	while (elapsed_ms < MP3_DEMO_DURATION_MS) {
+		/* Calculate progress percentage (0-100) */
+		int progress = (elapsed_ms * 100) / MP3_DEMO_DURATION_MS;
+		lv_bar_set_value(bar, progress, LV_ANIM_OFF);
+
+		/* Calculate fake song time based on progress.
+		 * If song is 3:30 (210s), map elapsed demo time to song time. */
+		int song_sec = (elapsed_ms * MP3_SONG_TOTAL_SEC) / MP3_DEMO_DURATION_MS;
+		int min = song_sec / 60;
+		int sec = song_sec % 60;
+		snprintf(time_str, sizeof(time_str), "%d:%02d / 3:30", min, sec);
+		lv_label_set_text(time_label, time_str);
+
+		/* Let LVGL process rendering and scroll animation.
+		 * 30ms interval = ~33 FPS, smooth enough for scrolling text. */
+		lv_task_handler();
+		k_sleep(K_MSEC(30));
+		elapsed_ms += 30;
+	}
+
+	/* Final state: bar full, time at 3:30 */
+	lv_bar_set_value(bar, 100, LV_ANIM_OFF);
+	lv_label_set_text(time_label, "3:30 / 3:30");
+	lv_task_handler();
+}
+
+
+/* =============================================================================
  * HELPER: Clear the screen
  * =============================================================================
  * Removes all widgets from the current screen so the next demo starts fresh.
@@ -413,9 +500,10 @@ int main(void)
 		demo_arc,       /* Demo 3 */
 		demo_image,     /* Demo 4 */
 		demo_canvas,    /* Demo 5 */
+		demo_mp3,       /* Demo 6: MP3 player (has its own 6-second loop) */
 	};
 	static const char *demo_names[] = {
-		"Text", "Lines", "Arc", "Image", "Canvas"
+		"Text", "Lines", "Arc", "Image", "Canvas", "MP3"
 	};
 	/* ARRAY_SIZE() is a macro that calculates how many elements are in an array */
 	const int num_demos = ARRAY_SIZE(demos);
