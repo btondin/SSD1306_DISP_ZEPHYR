@@ -27,6 +27,7 @@
 #include <lvgl.h>                 /* LVGL graphics library (widgets, drawing, fonts) */
 #include <stdio.h>                /* C standard I/O (snprintf for formatting strings) */
 #include <string.h>               /* C standard string functions (memcpy, strlen, etc.) */
+#include <stdbool.h>              /* C standard bool type (true/false) */
 
 /* --- Logging setup ----------------------------------------------------------
  * This creates a "log channel" named "app". We can then use LOG_INF() to print
@@ -115,11 +116,16 @@ static void demo_lines(void)
 	/* Create a "style" object that defines how lines look.
 	 * Styles are reusable - we apply the same style to multiple lines.
 	 * "static" means this variable persists between function calls (LVGL needs
-	 * the style to stay alive as long as the objects using it exist). */
+	 * the style to stay alive as long as the objects using it exist).
+	 * IMPORTANT: Only initialize once to avoid memory leak! */
 	static lv_style_t style_line;
-	lv_style_init(&style_line);                            /* Initialize the style */
-	lv_style_set_line_width(&style_line, 1);               /* Line thickness: 1 pixel */
-	lv_style_set_line_color(&style_line, lv_color_white()); /* Line color: white */
+	static bool style_initialized = false;
+	if (!style_initialized) {
+		lv_style_init(&style_line);                        /* Initialize the style ONCE */
+		lv_style_set_line_width(&style_line, 1);           /* Line thickness: 1 pixel */
+		lv_style_set_line_color(&style_line, lv_color_white()); /* Line color: white */
+		style_initialized = true;
+	}
 
 	/* --- Triangle --- */
 	lv_obj_t *tri = lv_line_create(scr);       /* Create a line widget */
