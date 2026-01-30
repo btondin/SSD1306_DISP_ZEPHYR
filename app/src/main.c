@@ -5,12 +5,14 @@
  * This program demonstrates different ways to draw on a 128x64 monochrome OLED
  * display using the LVGL graphics library on Zephyr RTOS.
  *
- * It cycles through 5 demos:
- *   1. Text      - Display text with different fonts
+ * It cycles through 6 demos:
+ *   1. Text      - Display text with different fonts (Montserrat 14, UNSCII 8)
  *   2. Lines     - Draw lines connecting points (triangle + X shape)
- *   3. Arc       - Draw curved arc shapes (like a circular progress bar)
- *   4. Image     - Display a bitmap image (smiley face)
- *   5. Canvas    - Draw individual pixels to create shapes
+ *   3. Arc       - Draw curved arc shapes (circular progress indicators)
+ *   4. Image     - Display a 1-bit bitmap image (32x32 smiley face)
+ *   5. Canvas    - Draw individual pixels to create custom shapes
+ *   6. MP3       - Simulates an old-school MP3 player with scrolling song
+ *                  title, progress bar, and time counter (like a Foston)
  *
  * SPDX-License-Identifier: Apache-2.0
  * =============================================================================
